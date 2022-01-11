@@ -7,69 +7,86 @@ import { formatPrice } from '../../util/format';
 import { useCart } from '../../hooks/useCart';
 
 interface Product {
-  id: number;
-  title: string;
-  price: number;
-  image: string;
+	id: number;
+	title: string;
+	price: number;
+	image: string;
 }
 
 interface ProductFormatted extends Product {
-  priceFormatted: string;
+	priceFormatted: string;
 }
 
 interface CartItemsAmount {
-  [key: number]: number;
+	[key: number]: number;
 }
 
 const Home = (): JSX.Element => {
-   const [products, setProducts] = useState<ProductFormatted[]>([]);
-   const { addProduct, cart } = useCart();
+	const [products, setProducts] = useState<ProductFormatted[]>([]);
+	const { addProduct, cart } = useCart();
 
-   const cartItemsAmount = cart.reduce((sumAmount, product) => {
+	// Função que deve possuir as informações da quantidade de cada produto no carrinho
+	const cartItemsAmount = cart.reduce((sumAmount, product) => {
 
-      // Mostrar a quantidade de prudutos no carrinho
+		// Mostrar a quantidade de produtos no carrinho (botão Home)
 
-        //
-        const newSumAmount = {...sumAmount}
-        newSumAmount[product.id] = product.amount
+		// Criando novo objeto
+		const newSumAmount = { ...sumAmount }
 
-        return newSumAmount
+		// Podemos acessar a chave, depois associamos a chave do produtocls 
+		newSumAmount[product.id] = product.amount
 
-   }, {} as CartItemsAmount)
+		return newSumAmount
 
-  useEffect(() => {
-    async function loadProducts() {
-       // Carregar os produtos da API
-    }
+	}, {} as CartItemsAmount)
 
-    loadProducts();
-  }, []);
+	useEffect(() => {
+		async function loadProducts() {
 
-  function handleAddProduct(id: number) {
-     // Adiconar produto (pela home)
-  }
+			// Carregar os produtos da API
 
-  return (
-    <ProductList>
-      <li>
-        <img src="https://rocketseat-cdn.s3-sa-east-1.amazonaws.com/modulo-redux/tenis1.jpg" alt="Tênis de Caminhada Leve Confortável" />
-        <strong>Tênis de Caminhada Leve Confortável</strong>
-        <span>R$ 179,90</span>
-        <button
-          type="button"
-          data-testid="add-product-button"
-         onClick={() => handleAddProduct(product.id)}
-        >
-          <div data-testid="cart-product-quantity">
-            <MdAddShoppingCart size={16} color="#FFF" />
-            {cartItemsAmount[product.id] || 0} 2
-          </div>
+			const response = await api.get<Product[]>('products')
 
-          <span>ADICIONAR AO CARRINHO</span>
-        </button>
-      </li>
-    </ProductList>
-  );
+			// Vamos usar o `map` para formatar o valor do preço (R$)
+			const data = response.data.map(product => ({
+				...product,
+				priceFormatted: formatPrice(product.price)
+			}))
+
+			setProducts(data)
+		}
+
+		loadProducts();
+	}, []);
+
+	function handleAddProduct(id: number) {
+		// Adiconar produto (pela home)
+		addProduct(id)
+	}
+
+	return (
+		<ProductList>
+			{products.map(product => (
+				<li key={product.id} >
+					<img src={product.image} alt={product.title} />
+					<strong>Tênis de Caminhada Leve Confortável</strong>
+					<span>{product.priceFormatted}</span>
+					<button
+						type="button"
+						data-testid="add-product-button"
+						onClick={() => handleAddProduct(product.id)}
+					>
+						<div data-testid="cart-product-quantity">
+							<MdAddShoppingCart size={16} color="#FFF" />
+							{cartItemsAmount[product.id] || 0} 
+						</div>
+
+						<span>ADICIONAR AO CARRINHO</span>
+					</button>
+				</li>
+			))}
+		</ProductList>
+	);
 };
 
 export default Home;
