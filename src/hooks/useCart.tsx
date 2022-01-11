@@ -139,6 +139,7 @@ const updateProductAmount = async ({
 		// Verificação do estoque
 		if (amount > stockAmount) {
 			toast.error('Qauntidade solicitada fora de estoque')
+			return
 		}
 
 		// Verificando se o produto existe
