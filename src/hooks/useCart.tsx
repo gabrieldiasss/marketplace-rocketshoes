@@ -105,9 +105,21 @@ const addProduct = async (productId: number) => {
 
 const removeProduct = (productId: number) => {
 	try {
-		// TODO
+		// Pra removermos o produto primeiro precisamos ver se ele existe no carrinho
+		const updatedCart = [...cart]
+		const productIndex = updatedCart.findIndex(product => product.id === productId)
+
+		if (productIndex >= 0) {
+			updatedCart.splice(productIndex, 1)
+			setCart(updatedCart)
+			localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart)) 
+		} else {
+			throw Error()
+		}
+
+
 	} catch {
-		// TODO
+		toast.error('Erro na remoção do produto')
 	}
 };
 
@@ -116,9 +128,33 @@ const updateProductAmount = async ({
 	amount,
 }: UpdateProductAmount) => {
 	try {
-		// TODO
+		if (amount <= 0) {
+			return
+		}
+
+		const stock = await api.get(`/stock/${productId}`)
+
+		const stockAmount = stock.data.amount
+
+		// Verificação do estoque
+		if (amount > stockAmount) {
+			toast.error('Qauntidade solicitada fora de estoque')
+		}
+
+		// Verificando se o produto existe
+		const updatedCart = [...cart]
+		const productExists = updatedCart.find(product => product.id === productId)
+
+		if (productExists) {
+			productExists.amount = amount 
+			setCart(updatedCart)
+			localStorage.setItem('@RocketShoes:cart', JSON.stringify(updatedCart))
+		} else {
+			throw Error()
+		}
+
 	} catch {
-		// TODO
+		toast.error('Erro na altereção da quantidade do produto')
 	}
 };
 
